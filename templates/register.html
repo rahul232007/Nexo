@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - NEXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .register-box {
+            width: 100%;
+            max-width: 450px;
+            margin: auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="landing-container">
+        <div class="glass-panel register-box animate-entry">
+            <h2 style="margin-bottom: 1.5rem;">Create Account</h2>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">I am a...</label>
+                    <select name="role" id="role" class="form-control"
+                        style="background: rgba(255, 255, 255, 0.05); color: white;">
+                        <option value="student" style="color: black;">Student</option>
+                        <option value="teacher" style="color: black;">Teacher</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password2">Confirm Password</label>
+                    <input type="password" name="password2" id="password2" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn-modern btn-primary" style="width: 100%; margin-top: 1rem;">Sign
+                    Up</button>
+            </form>
+
+            <p style="margin-top: 1.5rem; color: #94a3b8;">
+                Already have an account? <a href="{% url 'main:login' %}" style="color: var(--secondary-color);">Login
+                    here</a>
+            </p>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,670 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO AI - Intelligent Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Highlight.js for code blocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+    <style>
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 1rem 2rem;
+            overflow-y: hidden;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--glass-border) transparent;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 1.2rem;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 1rem;
+            animation: fadeIn 0.3s ease;
+            position: relative;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            border: 1px solid var(--glass-border);
+            border-bottom-left-radius: 2px;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
+        }
+
+        /* Markdown Styling */
+        .message.bot p {
+            margin-bottom: 1rem;
+        }
+
+        .message.bot p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message.bot code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .message.bot pre {
+            background: #1e1e1e;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .input-area {
+            padding: 2rem;
+            background: linear-gradient(transparent, var(--bg-color) 20%);
+        }
+
+        .input-box-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 0.5rem;
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .input-box-wrapper:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem;
+            background: transparent;
+            border: none;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: none;
+            max-height: 200px;
+            min-height: 24px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+        }
+
+        .send-btn,
+        .voice-btn-entry {
+            background: var(--primary-color);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .voice-btn-entry.active {
+            background: rgba(108, 99, 255, 0.2);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .voice-btn-entry {
+            background: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            margin-right: 0.5rem;
+        }
+
+        .send-btn:hover {
+            background: #5a52d5;
+            transform: scale(1.05);
+        }
+
+        .voice-btn-entry:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Immersive Voice Overlay */
+        #voice-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .voice-orb-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .voice-orb {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-color), var(--secondary-color));
+            filter: blur(5px);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 40px var(--primary-color);
+        }
+
+        .voice-orb.listening {
+            animation: orbIdle 2s infinite ease-in-out, orbPulse 0.5s infinite alternate ease-in-out;
+        }
+
+        .voice-orb.speaking {
+            animation: orbGlow 1.5s infinite alternate ease-in-out;
+            transform: scale(1.2);
+            filter: blur(10px);
+        }
+
+        .voice-orb.processing {
+            animation: orbRotate 1s infinite linear;
+            border: 4px dashed white;
+        }
+
+        @keyframes orbIdle {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes orbPulse {
+            from {
+                box-shadow: 0 0 20px var(--primary-color);
+            }
+
+            to {
+                box-shadow: 0 0 60px var(--secondary-color);
+            }
+        }
+
+        @keyframes orbGlow {
+            from {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1.3);
+            }
+        }
+
+        @keyframes orbRotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .voice-status {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            color: #94a3b8;
+        }
+
+        .voice-transcript {
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            max-width: 80%;
+            color: #cbd5e1;
+            min-height: 1.5em;
+            font-style: italic;
+        }
+
+        .close-voice {
+            position: absolute;
+            bottom: 3rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .close-voice:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div>
+                <h2 style="color: var(--secondary-color); margin: 0;">NEXO Bot 🤖</h2>
+                <p style="color: #64748b; font-size: 0.8rem; margin: 0;">Powered by Gemini AI</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="{% url 'main:home' %}"
+                    style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">Exit</a>
+                <button id="header-voice-btn" class="btn-modern btn-primary"
+                    style="padding: 0.5rem 1rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"
+                    title="Start Immersive Voice Conversation">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                    Immersive Mode
+                </button>
+                <a href="{% url 'chatbot:clear_chat_session' %}" id="new-chat" class="btn-modern btn-secondary"
+                    style="padding: 0.5rem 1rem; font-size: 0.8rem;">New Chat</a>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            {% for msg in history %}
+            <div class="message {{ msg.role }}">
+                {% if msg.role == 'bot' %}
+                <div class="markdown-content">{{ msg.content|safe }}</div>
+                {% else %}
+                {{ msg.content }}
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="message bot">
+                Hello! I'm NEXO, your intelligent academic assistant. How can I help you with your studies today?
+            </div>
+            {% endfor %}
+            <div id="typing"
+                style="display:none; color: #94a3b8; font-style: italic; font-size: 0.9rem; margin-top: 1rem;">NEXO is
+                thinking...</div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <form id="chat-form" class="input-box-wrapper">
+            {% csrf_token %}
+            <button type="button" id="start-voice" class="voice-btn-entry" title="Dictate (Speech to Text)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+            </button>
+            <textarea id="user-input" class="chat-input" placeholder="Message NEXO..." rows="1" required></textarea>
+            <button type="submit" class="send-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <!-- Voice Overlay -->
+    <div id="voice-overlay">
+        <div id="voice-diagnosis"
+            style="position: absolute; top: 1rem; left: 1rem; color: #4ade80; font-size: 0.7rem; text-align: left; pointer-events: none;">
+            STT: <span id="diag-stt">Ready</span> | TTS: <span id="diag-tts">Ready</span>
+        </div>
+        <div class="voice-orb-container">
+            <div class="voice-orb" id="orb"></div>
+        </div>
+        <div class="voice-status" id="v-status">Listening...</div>
+        <div class="voice-transcript" id="v-transcript"></div>
+        <div id="bot-voice-text"
+            style="margin-top: 1.5rem; max-width: 80%; font-size: 1.2rem; color: var(--secondary-color); min-height: 2em; line-height: 1.4;">
+        </div>
+        <div style="display: flex; gap: 1rem; position: absolute; bottom: 3rem;">
+            <button id="test-audio"
+                style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 20px; color: #94a3b8; font-size: 0.8rem;">Test
+                Audio</button>
+            <button class="close-voice" id="stop-voice" style="position: static;">End Session</button>
+        </div>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const typingIndicator = document.getElementById('typing');
+
+        // Voice Elements
+        const voiceOverlay = document.getElementById('voice-overlay');
+        const orb = document.getElementById('orb');
+        const vStatus = document.getElementById('v-status');
+        const vTranscript = document.getElementById('v-transcript');
+        const botVoiceText = document.getElementById('bot-voice-text');
+        const startVoiceBtn = document.getElementById('start-voice');
+        const stopVoiceBtn = document.getElementById('stop-voice');
+
+        // Configure Marked
+        marked.setOptions({
+            highlight: function (code) { return hljs.highlightAuto(code).value; },
+            breaks: true
+        });
+
+        function parseBotMessages() {
+            document.querySelectorAll('.message.bot .markdown-content').forEach(el => {
+                if (!el.dataset.parsed) {
+                    el.innerHTML = marked.parse(el.textContent);
+                    el.dataset.parsed = "true";
+                }
+            });
+            hljs.highlightAll();
+        }
+
+        parseBotMessages();
+        scrollToBottom();
+
+        // Immersive Voice Mode Logic (Header Button)
+        const headerVoiceBtn = document.getElementById('header-voice-btn');
+        let immersiveRecognition;
+        let isImmersiveMode = false;
+
+        if ('webkitSpeechRecognition' in window) {
+            console.log("STT: webkitSpeechRecognition found.");
+            immersiveRecognition = new webkitSpeechRecognition();
+            immersiveRecognition.continuous = false;
+            immersiveRecognition.interimResults = true;
+            immersiveRecognition.lang = 'en-US';
+
+            immersiveRecognition.onstart = () => {
+                console.log("STT: Immersive Recognition started.");
+                setOrbState('listening');
+                vStatus.innerText = "NEXO is listening...";
+                vTranscript.innerText = "";
+            };
+
+            immersiveRecognition.onresult = (event) => {
+                let interim = "";
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        const transcript = event.results[i][0].transcript;
+                        console.log("STT: Final Result ->", transcript);
+                        vTranscript.innerText = transcript;
+                        vStatus.innerText = "Processing...";
+                        setOrbState('processing');
+                        sendMessage(transcript, true);
+                    } else {
+                        interim += event.results[i][0].transcript;
+                        vTranscript.innerText = interim;
+                    }
+                }
+            };
+
+            immersiveRecognition.onerror = (event) => {
+                console.error("STT ERROR:", event.error);
+                vStatus.innerText = "Mic Error: " + event.error;
+                document.getElementById('diag-stt').innerText = "ERROR: " + event.error;
+                if (isImmersiveMode) setTimeout(() => { if (isImmersiveMode) stopVoice(); }, 2000);
+            };
+
+            immersiveRecognition.onend = () => {
+                console.log("STT: Immersive Recognition ended.");
+                if (!isImmersiveMode) return;
+            };
+        } else {
+            console.warn("STT: webkitSpeechRecognition NOT supported.");
+            document.getElementById('diag-stt').innerText = "NOT SUPPORTED";
+        }
+
+        document.getElementById('test-audio').addEventListener('click', () => {
+            console.log("DIAG: Testing Audio Output...");
+            const ut = new SpeechSynthesisUtterance("Audio test successful. Your speakers are working.");
+            window.speechSynthesis.speak(ut);
+        });
+
+        headerVoiceBtn.addEventListener('click', () => {
+            isImmersiveMode = true;
+            voiceOverlay.style.display = 'flex';
+            if (immersiveRecognition) immersiveRecognition.start();
+        });
+
+        stopVoiceBtn.addEventListener('click', stopVoice);
+
+        function stopVoice() {
+            isImmersiveMode = false;
+            voiceOverlay.style.display = 'none';
+            if (immersiveRecognition) immersiveRecognition.stop();
+            synth.cancel();
+        }
+
+        // Dictation (Normal STT) Logic (Input Bar Button)
+        let dictationRecognition;
+        if ('webkitSpeechRecognition' in window) {
+            dictationRecognition = new webkitSpeechRecognition();
+            dictationRecognition.continuous = false;
+            dictationRecognition.lang = 'en-US';
+
+            dictationRecognition.onstart = () => {
+                startVoiceBtn.classList.add('active');
+                userInput.placeholder = "Listening...";
+            };
+
+            dictationRecognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value += transcript;
+                userInput.style.height = 'auto';
+                userInput.style.height = (userInput.scrollHeight) + 'px';
+            };
+
+            dictationRecognition.onend = () => {
+                startVoiceBtn.classList.remove('active');
+                userInput.placeholder = "Message NEXO...";
+            };
+        }
+
+        startVoiceBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (dictationRecognition) dictationRecognition.start();
+        });
+
+        async function sendMessage(text, isVoiceModeParam = false) {
+            if (!text.trim()) return;
+            console.log(`[${new Date().toLocaleTimeString()}] sendMessage starting: ${text.slice(0, 20)}...`);
+
+            if (isVoiceModeParam) { appendMessage('user', text); }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+            try {
+                console.log(`[${new Date().toLocaleTimeString()}] Fetching chat_api...`);
+                const response = await fetch("{% url 'chatbot:chat_api' %}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ message: text }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const data = await response.json();
+                console.log(`[${new Date().toLocaleTimeString()}] chat_api response received.`);
+
+                if (isVoiceModeParam && isImmersiveMode) {
+                    appendMessage('bot', data.reply);
+                    handleVoiceResponse(data.reply);
+                } else if (!isVoiceModeParam) {
+                    appendMessage('bot', data.reply);
+                }
+            } catch (err) {
+                console.error(`[${new Date().toLocaleTimeString()}] sendMessage error:`, err);
+                if (err.name === 'AbortError') {
+                    const timeoutMsg = "The AI took too long to think. Please try a shorter question.";
+                    if (isVoiceModeParam && isImmersiveMode) {
+                        handleVoiceResponse(timeoutMsg);
+                    } else {
+                        appendMessage('bot', timeoutMsg);
+                    }
+                } else if (isVoiceModeParam && isImmersiveMode) {
+                    vStatus.innerText = "Error. Restarting...";
+                    setTimeout(() => { if (isImmersiveMode) immersiveRecognition.start(); }, 2000);
+                }
+            }
+        }
+
+
+        function handleVoiceResponse(text) {
+            if (!isImmersiveMode) return;
+            console.log("TTS: Speaking ->", text);
+            vStatus.innerText = "NEXO";
+            vTranscript.innerText = "";
+            botVoiceText.innerText = text;
+            setOrbState('speaking');
+
+            // Clean Markdown for TTS
+            const cleanText = text.replace(/<[^>]*>?/gm, '').replace(/[*#`_]/g, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+
+            utterance.onstart = () => console.log("TTS: Audio playback started.");
+            utterance.onerror = (err) => {
+                console.error("TTS ERROR:", err);
+                document.getElementById('diag-tts').innerText = "ERROR";
+            };
+
+            utterance.onend = () => {
+                console.log("TTS: Audio playback ended.");
+                if (isImmersiveMode) {
+                    vStatus.innerText = "Listening...";
+                    vTranscript.innerText = "";
+                    botVoiceText.innerText = "";
+                    setOrbState('listening');
+                    console.log("STT: Restarting microphone for loop...");
+                    immersiveRecognition.start();
+                }
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const msg = userInput.value.trim();
+            if (!msg) return;
+            appendMessage('user', msg);
+            userInput.value = '';
+            sendMessage(msg);
+        });
+
+        function appendMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender);
+            if (sender === 'bot') {
+                const content = document.createElement('div');
+                content.classList.add('markdown-content');
+                content.innerHTML = marked.parse(text);
+                msgDiv.appendChild(content);
+            } else {
+                msgDiv.textContent = text;
+            }
+            chatMessages.insertBefore(msgDiv, typingIndicator);
+            scrollToBottom();
+            if (sender === 'bot') hljs.highlightAll();
+        }
+
+        function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
+        userInput.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
+        userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.dispatchEvent(new Event('submit')); } });
+
+        // New Chat Logic
+        document.getElementById('new-chat').addEventListener('click', (e) => {
+            if (!confirm("Start a new conversation? History will be cleared on the server.")) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+
+</html>

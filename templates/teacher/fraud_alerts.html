@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Alerts - NEXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <div class="landing-container"
+        style="justify-content: flex-start; padding-top: 4rem; height: auto; min-height: 100vh;">
+        <nav class="glass-panel"
+            style="width: 90%; max-width: 1200px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; color: #ff6b6b;">🚨 Fraud Alerts</h2>
+            <a href="{% url 'teacher:teacher_dashboard' %}" class="btn-modern btn-secondary"
+                style="padding: 0.5rem 1.5rem; font-size: 1rem;">Back to Dashboard</a>
+
+        </nav>
+
+        <div style="width: 90%; max-width: 1000px; display: grid; gap: 1rem;">
+            {% for alert in alerts %}
+            <div class="glass-panel animate-entry"
+                style="padding: 1.5rem; border-left: 5px solid #ff6b6b; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #ff6b6b;">{{ alert.alert_type }}</h4>
+                    <p style="margin: 0 0 0.5rem 0; font-weight: bold;">Student: {{ alert.student.username }}</p>
+                    <p style="margin: 0; font-size: 0.9rem; color: #cbd5e1;">{{ alert.details }}</p>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 0.8rem; opacity: 0.7;">{{ alert.timestamp|date:"M d, Y H:i:s" }}</span>
+                    <!-- Actions could go here, like 'Resolve' or 'Contact Student' -->
+                </div>
+            </div>
+            {% empty %}
+            <div class="glass-panel animate-entry" style="text-align: center; padding: 3rem;">
+                <h3>No alerts triggered! ✅</h3>
+                <p>Everything looks good.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+
+</html>

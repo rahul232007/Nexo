@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - NEXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+        }
+
+        .main-content {
+            padding: 2rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 1rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(108, 99, 255, 0.2);
+            color: white;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-grid">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2 style="color: var(--primary-color);">NEXO Teacher</h2>
+            <nav style="margin-top: 2rem;">
+                <a href="#" class="nav-link active">Dashboard</a>
+                <a href="#upload-notes" class="nav-link">Upload Notes</a>
+                <a href="#post-instructions" class="nav-link">Instructions</a>
+                <a href="#assessments" class="nav-link">Assessments</a>
+                <a href="#students" class="nav-link">Students</a>
+                <a href="{% url 'activity_logs' %}" class="nav-link">Activity Logs</a>
+                <a href="{% url 'logout' %}" class="nav-link" style="color: #ef4444; margin-top: 2rem;">Logout</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h1>Welcome, {{ request.user.username }} 👋</h1>
+
+            <!-- Quick Stats -->
+            <div class="card-grid">
+                <div class="stat-card">
+                    <h3>Notes Uploaded</h3>
+                    <p style="font-size: 2rem; font-weight: bold;">{{ notes_count }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Instructions</h3>
+                    <p style="font-size: 2rem; font-weight: bold;">{{ instructions_count }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Alerts</h3>
+                    <p style="font-size: 2rem; font-weight: bold; color: #ef4444;">{{ alerts_count }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Students</h3>
+                    <p style="font-size: 2rem; font-weight: bold; color: var(--secondary-color);">{{ students_count }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="dashboard-grid-inner"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <!-- Upload Section -->
+                <div class="glass-panel" id="upload-notes">
+                    <h2 class="section-title">Upload New Note</h2>
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'upload_note' %}">
+                        {% csrf_token %}
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" name="title" placeholder="Note Title" class="form-control"
+                                style="width: 100%; padding: 0.8rem; margin-bottom: 1rem;" required>
+                            <input type="file" name="file" class="form-control" style="width: 100%; padding: 0.8rem;"
+                                required>
+                        </div>
+                        <button type="submit" class="btn-modern btn-primary" style="width: 100%;">Upload Note</button>
+                    </form>
+                </div>
+
+                <!-- Broadcast Email Section -->
+                <div class="glass-panel" id="broadcast-email">
+                    <h2 class="section-title">Send Email Broadcast</h2>
+                    <form method="POST" action="{% url 'broadcast_email' %}">
+                        {% csrf_token %}
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" name="subject" placeholder="Email Subject" class="form-control"
+                                style="width: 100%; padding: 0.8rem; margin-bottom: 1rem;" required>
+                            <textarea name="message" placeholder="Message content..." class="form-control"
+                                style="width: 100%; padding: 0.8rem; height: 100px; resize: none;" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-modern btn-secondary" style="width: 100%;">Send to All
+                            Students</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="dashboard-grid-inner"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <!-- Post Instruction Section -->
+                <div class="glass-panel" id="post-instructions">
+                    <h2 class="section-title">Post New Instruction</h2>
+                    <form method="POST" action="{% url 'post_instruction' %}">
+                        {% csrf_token %}
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" name="title" placeholder="Instruction Title" class="form-control"
+                                style="width: 100%; padding: 0.8rem; margin-bottom: 1rem;" required>
+                            <textarea name="content" placeholder="Instruction details..." class="form-control"
+                                style="width: 100%; padding: 0.8rem; height: 100px; resize: none;" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-modern btn-primary" style="width: 100%;">Post
+                            Instruction</button>
+                    </form>
+                </div>
+
+                <!-- Immediate Alert Section -->
+                <div class="glass-panel" id="broadcast-alert">
+                    <h2 class="section-title">Send Popup Alert</h2>
+                    <form method="POST" action="{% url 'broadcast_alert' %}">
+                        {% csrf_token %}
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" name="title" placeholder="Alert Heading (e.g., URGENT)"
+                                class="form-control" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem;"
+                                required>
+                            <input type="text" name="message" placeholder="Short alert message..." class="form-control"
+                                style="width: 100%; padding: 0.8rem;" required>
+                        </div>
+                        <button type="submit" class="btn-modern btn-secondary"
+                            style="width: 100%; border-color: #ef4444; color: #ef4444;">Broadcast Alert</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="glass-panel">
+                <h2 class="section-title">Recent Concept</h2>
+                <ul>
+                    {% for note in recent_notes %}
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                        <strong>{{ note.title }}</strong> - <span style="font-size: 0.8rem; color: #94a3b8;">{{
+                            note.uploaded_at|date:"M d, Y" }}</span>
+                    </li>
+                    {% empty %}
+                    <p>No notes uploaded yet.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

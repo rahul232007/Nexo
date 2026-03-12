@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessments - NEXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <div class="landing-container"
+        style="justify-content: flex-start; padding-top: 4rem; height: auto; min-height: 100vh;">
+        <nav class="glass-panel"
+            style="width: 90%; max-width: 1200px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0;">📝 Assessments</h2>
+            <a href="{% url 'student:student_dashboard' %}" class="btn-modern btn-secondary"
+                style="padding: 0.5rem 1.5rem; font-size: 1rem;">Back to Dashboard</a>
+
+        </nav>
+
+        <div style="width: 90%; max-width: 1000px; display: grid; gap: 2rem;">
+            {% for assessment in assessments %}
+            <div class="glass-panel animate-entry" style="padding: 2rem; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h3 style="margin: 0 0 0.5rem 0;">{{ assessment.title }}</h3>
+                        <p style="color: #cbd5e1; margin-bottom: 1rem;">{{ assessment.description }}</p>
+                        {% if assessment.file %}
+                        <a href="{{ assessment.file.url }}" download class="btn-modern btn-secondary"
+                            style="font-size: 0.9rem; padding: 0.3rem 0.8rem;">Download Attachment</a>
+                        {% endif %}
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #94a3b8;">Deadline: {{
+                            assessment.deadline|date:"M d, Y H:i" }}</p>
+                        <!-- Check if already submitted logic could go here, for now basic upload form -->
+                    </div>
+                </div>
+
+                <hr style="border-color: rgba(255,255,255,0.1); margin: 1.5rem 0;">
+
+                <form action="{% url 'student:submit_assessment' assessment.id %}" method="POST"
+                    enctype="multipart/form-data" style="display: flex; gap: 1rem; align-items: center;">
+                    {% csrf_token %}
+                    <input type="file" name="submission_file" required style="color: white;">
+                    <button type="submit" class="btn-modern btn-primary"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem;">Submit Work</button>
+                </form>
+            </div>
+            {% empty %}
+            <div class="glass-panel animate-entry" style="text-align: center; padding: 3rem;">
+                <h3>No pending assessments! 🎉</h3>
+                <p>Great job keeping up with your work.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+
+</html>

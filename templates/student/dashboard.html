@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - NEXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+        <!-- Navbar -->
+        <nav class="glass-panel"
+            style="margin: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0;">🎓 Student Dashboard</h2>
+            <div>
+                <span style="margin-right: 1rem;">Welcome, {{ request.user.username }}</span>
+                <a href="{% url 'communication:global_chat' %}" class="btn-modern btn-primary"
+                    style="padding: 0.5rem 1.5rem; font-size: 1rem; margin-right: 0.5rem;">🌐 Global Chat</a>
+                <a href="{% url 'main:logout' %}" class="btn-modern btn-secondary"
+                    style="padding: 0.5rem 1.5rem; font-size: 1rem;">Logout</a>
+            </div>
+        </nav>
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; padding: 0 2rem;">
+
+            <!-- Stats Cards -->
+            <div class="glass-panel animate-entry">
+                <h3>📄 Notes Available</h3>
+                <p style="font-size: 2rem; font-weight: bold; margin: 0;">{{ notes_count }}</p>
+            </div>
+
+            <div class="glass-panel animate-entry">
+                <h3>📝 Instructions</h3>
+                <p style="font-size: 2rem; font-weight: bold; margin: 0;">{{ instructions_count }}</p>
+            </div>
+
+            <div class="glass-panel animate-entry">
+                <h3>🎯 Pending Assessments</h3>
+                <p style="font-size: 2rem; font-weight: bold; margin: 0;">{{ assessments_count }}</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem;">
+
+            <!-- Latest Notes -->
+            <div class="glass-panel animate-entry">
+                <h3>Latest Notes</h3>
+                <ul style="list-style: none; padding: 0;">
+                    {% for note in notes %}
+                    <li
+                        style="background: rgba(255,255,255,0.05); padding: 1rem; margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-weight: bold; display: block;">{{ note.title }}</span>
+                            <span style="font-size: 0.8rem; opacity: 0.7;">Uploaded by: {{ note.uploaded_by.username
+                                }}</span>
+                        </div>
+                        <!-- Note: Ensure media URL is configured or handle path correctly -->
+                        <a href="{{ note.file.url }}" class="btn-modern btn-secondary"
+                            style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" download>Download</a>
+                    </li>
+                    {% empty %}
+                    <p>No notes available.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Recent Instructions -->
+            <div class="glass-panel animate-entry">
+                <h3>Instructions</h3>
+                <ul style="list-style: none; padding: 0;">
+                    {% for instruction in instructions %}
+                    <li
+                        style="background: rgba(255,255,255,0.05); padding: 1rem; margin-bottom: 0.5rem; border-radius: 8px;">
+                        <span style="font-weight: bold; display: block; margin-bottom: 0.5rem;">{{ instruction.title
+                            }}</span>
+                        <p style="font-size: 0.9rem; opacity: 0.9; margin: 0;">{{ instruction.content }}</p>
+                        <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 0.5rem; text-align: right;">
+                            {{ instruction.created_at|date:"M d, Y" }}
+                        </div>
+                    </li>
+                    {% empty %}
+                    <p>No instructions posted.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

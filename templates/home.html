@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO - Smart Education</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <div class="landing-container">
+        <div class="animate-entry">
+            <h1 class="hero-title">NEXO</h1>
+            <p class="hero-subtitle">Intelligent Student-Teacher Management System</p>
+
+            <div class="action-buttons sequence-delay">
+                <!-- Login Button -->
+                <a href="{% url 'main:login' %}" class="btn-modern btn-primary">Login</a>
+
+                <!-- Bot Button -->
+                <a href="{% url 'chatbot:chat_page' %}" class="btn-modern btn-secondary">Use Bot</a>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

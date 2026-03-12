@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Logs - NEXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .log-table th,
+        .log-table td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .log-table th {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="padding: 2rem;">
+        <a href="{% url 'teacher_dashboard' %}" class="btn-modern btn-secondary"
+            style="padding: 0.5rem 1rem; margin-bottom: 2rem;">Back to Dashboard</a>
+
+        <div class="glass-panel">
+            <h1 class="section-title">Student Activity Logs</h1>
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td><strong>{{ log.user.username }}</strong></td>
+                        <td>{{ log.action }}</td>
+                        <td style="color: #94a3b8;">{{ log.details|default:"-" }}</td>
+                        <td>{{ log.timestamp|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No logs available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

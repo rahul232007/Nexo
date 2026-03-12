@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Assessment - NEXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <div class="landing-container" style="justify-content: flex-start; padding-top: 4rem;">
+        <nav class="glass-panel"
+            style="width: 90%; max-width: 1200px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0;">📝 Create Assessment</h2>
+            <a href="{% url 'teacher:teacher_dashboard' %}" class="btn-modern btn-secondary"
+                style="padding: 0.5rem 1.5rem; font-size: 1rem;">Back to Dashboard</a>
+
+        </nav>
+
+        <div class="glass-panel animate-entry" style="width: 90%; max-width: 800px; padding: 3rem;">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #cbd5e1;">Title</label>
+                    <input type="text" name="title" required class="form-control"
+                        style="width: 100%; padding: 1rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.05); color: white;">
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #cbd5e1;">Description /
+                        Instructions</label>
+                    <textarea name="description" rows="5" required class="form-control"
+                        style="width: 100%; padding: 1rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.05); color: white;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; color: #cbd5e1;">Deadline</label>
+                        <input type="datetime-local" name="deadline" required class="form-control"
+                            style="width: 100%; padding: 1rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.05); color: white;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; color: #cbd5e1;">Attachment
+                            (Optional)</label>
+                        <input type="file" name="file" class="form-control"
+                            style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.05); color: white;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-modern btn-primary" style="width: 100%;">Create Assessment</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

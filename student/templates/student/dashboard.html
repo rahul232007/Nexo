@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - NEXO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem;
+        }
+
+        .main-content {
+            padding: 2rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 1rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(0, 191, 166, 0.2);
+            /* Teal for students */
+            color: white;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .note-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .note-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-grid">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2 style="color: var(--secondary-color);">NEXO Student</h2>
+            <nav style="margin-top: 2rem;">
+                <a href="#" class="nav-link active">Dashboard</a>
+                <a href="#notes" class="nav-link">My Notes</a>
+                <a href="#instructions" class="nav-link">Instructions</a>
+                <a href="#assessments" class="nav-link">Assessments</a>
+                <a href="{% url 'logout' %}" class="nav-link" style="color: #ef4444; margin-top: 2rem;">Logout</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h1>Welcome Back, {{ request.user.username }} 🎓</h1>
+
+            <!-- Quick Stats -->
+            <div class="card-grid">
+                <div class="stat-card">
+                    <h3>Available Notes</h3>
+                    <p style="font-size: 2rem; font-weight: bold; color: var(--secondary-color);">{{ notes_count }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>New Instructions</h3>
+                    <p style="font-size: 2rem; font-weight: bold;">{{ instructions_count }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Assessments</h3>
+                    <p style="font-size: 2rem; font-weight: bold; color: #f59e0b;">{{ assessments_count }}</p>
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="glass-panel" style="margin-bottom: 2rem;">
+                <h2 class="section-title">Notifications & Alerts</h2>
+                <div id="alert-container">
+                    {% for notification in notifications %}
+                    <div class="stat-card"
+                        style="margin-bottom: 1rem; border-left: 4px solid {% if notification.is_alert %}#ef4444{% else %}var(--secondary-color){% endif %};">
+                        <strong>{{ notification.title }}</strong>
+                        <p style="font-size: 0.9rem; color: #cbd5e1; margin: 0.5rem 0;">{{ notification.message }}</p>
+                        <span style="font-size: 0.75rem; color: #64748b;">{{ notification.created_at|date:"M d, H:i"
+                            }}</span>
+                    </div>
+                    {% empty %}
+                    <p>No new notifications.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="glass-panel" style="margin-bottom: 2rem;" id="notes">
+                <h2 class="section-title">Study Materials</h2>
+                <div class="notes-list">
+                    {% for note in notes %}
+                    <div class="note-item">
+                        <div>
+                            <strong>{{ note.title }}</strong>
+                            <br>
+                            <span style="font-size: 0.8rem; color: #94a3b8;">Uploaded by {{ note.uploaded_by.username }}
+                                on {{ note.uploaded_at|date:"M d, Y" }}</span>
+                        </div>
+                        <!-- Future: Add download tracking here -->
+                        <a href="{{ note.file.url }}" download class="btn-modern btn-secondary"
+                            style="padding: 0.5rem 1rem; font-size: 0.9rem;">Download</a>
+                    </div>
+                    {% empty %}
+                    <p>No notes available yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Instructions Section -->
+            <div class="glass-panel" id="instructions">
+                <h2 class="section-title">Latest Instructions</h2>
+                <ul>
+                    {% for instruction in instructions %}
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                        <strong>{{ instruction.title }}</strong>
+                        <p style="margin: 0.5rem 0; color: #cbd5e1;">{{ instruction.content }}</p>
+                        <span style="font-size: 0.8rem; color: #94a3b8;">Posted on {{ instruction.created_at|date:"M d,
+                            Y" }}</span>
+                    </li>
+                    {% empty %}
+                    <p>No instructions posted yet.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Fraud Alert Script -->
+    <script>
+        document.addEventListener('copy', (event) => {
+            fetch("{% url 'track_fraud' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    alert_type: 'Copy Event',
+                    details: 'Student copied text from the dashboard.'
+                })
+            });
+        });
+
+        document.addEventListener('paste', (event) => {
+            fetch("{% url 'track_fraud' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    alert_type: 'Paste Event',
+                    details: 'Student attempted to paste text on the dashboard.'
+                })
+            });
+        });
+    </script>
+</body>
+
+</html>
