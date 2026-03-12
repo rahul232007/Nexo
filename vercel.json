@@ -1,0 +1,14 @@
+{
+  "builds": [
+    {
+      "src": "nexo/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "nexo/wsgi.py"
+    }
+  ]
+}
